@@ -3,7 +3,9 @@ package cli
 import (
 	"fmt"
 	"os"
+	"text/tabwriter"
 
+	"github.com/fatih/color"
 	"github.com/ismailtsdln/ExeMorph/internal/analysis"
 	"github.com/spf13/cobra"
 )
@@ -20,30 +22,42 @@ mechanism to suggest the best entry point for conversion.`,
 
 		peFile, err := analysis.NewPEFile(filePath)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error opening file: %v\n", err)
+			color.Red("Error opening file: %v", err)
 			os.Exit(1)
 		}
 		defer peFile.Close()
 
-		fmt.Printf("Analyzing %s...\n", filePath)
-		fmt.Printf("Architecture: %s\n", peFile.GetArch())
-		fmt.Printf("Is DLL: %v\n", peFile.IsDLL())
+		header := color.New(color.FgCyan, color.Bold)
+		header.Printf("Analyzing %s...\n", filePath)
+
+		fmt.Printf("Architecture: %s\n", color.YellowString(peFile.GetArch()))
+		fmt.Printf("Is DLL: %v\n", color.BlueString("%v", peFile.IsDLL()))
 
 		scanner := analysis.NewScanner(peFile)
 		candidates, err := scanner.ScanCandidates()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error scanning file: %v\n", err)
+			color.Red("Error scanning file: %v", err)
 			os.Exit(1)
 		}
 
-		// Quick output for CLI
-		fmt.Println("\nExecution Candidates:")
-		for _, c := range candidates {
-			fmt.Printf(" - [%s] %s (Addr: 0x%X, Score: %.2f)\n", c.Type, c.Name, c.Address, c.Confidence)
-		}
+		fmt.Println()
+		header.Println("Execution Candidates:")
 
-		// If debug or JSON flag is set, we might output more details
-		// For now simple plain text
+		w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
+		fmt.Fprintln(w, "TYPE\tNAME\tADDRESS\tSCORE")
+
+		for _, c := range candidates {
+			scoreColor := color.FgRed
+			if c.Confidence >= 0.9 {
+				scoreColor = color.FgGreen
+			} else if c.Confidence >= 0.5 {
+				scoreColor = color.FgYellow
+			}
+
+			scoreStr := color.New(scoreColor).Sprintf("%.2f", c.Confidence)
+			fmt.Fprintf(w, "%s\t%s\t0x%X\t%s\n", c.Type, c.Name, c.Address, scoreStr)
+		}
+		w.Flush()
 	},
 }
 

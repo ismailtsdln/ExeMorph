@@ -42,7 +42,7 @@ func Transform(srcPath string, opts BuildOptions) error {
 
 	characteristics := binary.LittleEndian.Uint16(raw[charOffset:])
 	if characteristics&0x2000 != 0 {
-		fmt.Println("[Transform] Removing DLL characteristic flag...")
+		// fmt.Println("[Transform] Removing DLL characteristic flag...") // Cleaned up for CLI
 		characteristics &^= 0x2000 // Clear bit
 		binary.LittleEndian.PutUint16(raw[charOffset:], characteristics)
 	}
@@ -80,7 +80,7 @@ func Transform(srcPath string, opts BuildOptions) error {
 	// Ideally we check if currentTableEnd + 40 overlaps with the first section's data.
 	// For now, we trust there is standard padding (typically there is).
 
-	fmt.Printf("[Transform] Appending new section '.morph' at offset 0x%x\n", currentTableEnd)
+	// fmt.Printf("[Transform] Appending new section '.morph' at offset 0x%x\n", currentTableEnd)
 
 	// Construct Section Header (40 bytes)
 	// Name (8), VirtualSize(4), VirtualAddress(4), SizeOfRawData(4), PointerToRawData(4), ...
@@ -160,7 +160,7 @@ func Transform(srcPath string, opts BuildOptions) error {
 	// Magic (2) + Linker (2) + CodeSize (4) + InitData (4) + UninitData (4) = 16 bytes.
 	// AddressOfEntryPoint is next (4 bytes). So offset 16.
 	entryPointFieldOffset := peHeaderOffset + 4 + 20 + 16
-	fmt.Printf("[Transform] Updating EntryPoint: Old=0x%x -> New=0x%x\n", binary.LittleEndian.Uint32(raw[entryPointFieldOffset:]), nextRVA)
+	// fmt.Printf("[Transform] Updating EntryPoint: Old=0x%x -> New=0x%x\n", binary.LittleEndian.Uint32(raw[entryPointFieldOffset:]), nextRVA)
 	binary.LittleEndian.PutUint32(raw[entryPointFieldOffset:], nextRVA)
 
 	// 8. Write Output
@@ -168,7 +168,7 @@ func Transform(srcPath string, opts BuildOptions) error {
 		return fmt.Errorf("failed to write output file: %w", err)
 	}
 
-	fmt.Printf("[Success] Built %s\n", opts.OutputFile)
+	// fmt.Printf("[Success] Built %s\n", opts.OutputFile)
 	return nil
 }
 

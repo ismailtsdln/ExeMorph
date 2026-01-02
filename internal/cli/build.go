@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/ismailtsdln/ExeMorph/internal/transform"
 	"github.com/spf13/cobra"
 )
@@ -27,9 +28,11 @@ redirects the entry point to the selected export.`,
 			outputFile = dllPath + ".exe"
 		}
 
-		fmt.Printf("Building EXE from %s...\n", dllPath)
-		fmt.Printf(" - Target Export: %s\n", entryExport)
-		fmt.Printf(" - Output File: %s\n", outputFile)
+		header := color.New(color.FgCyan, color.Bold)
+		header.Printf("Building EXE from %s...\n", dllPath)
+
+		fmt.Printf(" - Target Export: %s\n", color.YellowString(entryExport))
+		fmt.Printf(" - Output File: %s\n", color.GreenString(outputFile))
 
 		opts := transform.BuildOptions{
 			EntryExport: entryExport,
@@ -37,9 +40,11 @@ redirects the entry point to the selected export.`,
 		}
 
 		if err := transform.Transform(dllPath, opts); err != nil {
-			fmt.Fprintf(os.Stderr, "Build failed: %v\n", err)
+			color.Red("Build failed: %v", err)
 			os.Exit(1)
 		}
+
+		color.Green("\n[+] Build successful! Output: %s\n", outputFile)
 	},
 }
 
