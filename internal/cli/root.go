@@ -27,6 +27,12 @@ func Execute() {
 	}
 }
 
+var (
+	verbose bool
+	jsonOut bool
+)
+
 func init() {
-	// Global flags can be defined here
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose logging")
+	rootCmd.PersistentFlags().BoolVar(&jsonOut, "json", false, "Output results in JSON format")
 }
